@@ -1,0 +1,75 @@
+=========================================================================================== 
+/////机械臂传入数据舵机转动实现///////////////////////////
+def actionCb(self, goal):
+        rospy.loginfo(self.name + ": Action goal recieved.")
+        traj = goal.trajectory 
+
+        if not traj.points:#判断收到的消息是否为空
+            msg = "Trajectory empy."
+            rospy.logerr(msg)
+            self.server.set_aborted(text=msg)
+            return  
+
+        try:
+            indexes = [traj.joint_names.index(joint.name) for joint in self.joints]
+			#按照joints列表的顺序对traj的数据进行排序，把排序数据放到indexes中  也就是按照joint的顺序，将joint的名字的存入indexes里面  供后面使用
+        except ValueError as val:
+            msg = "Trajectory invalid."
+            rospy.logerr(msg)
+            self.server.set_aborted(text=msg)
+            return
+
+        start = traj.header.stamp#当前的时间戳
+        if start.secs == 0 and start.nsecs == 0:
+            start = rospy.Time.now()
+
+        r = rospy.Rate(self.rate)
+        for point in traj.points:            
+            desired = [ point.positions[k] for k in indexes ]#期望的控制点  此时indexes里面存放的就是哥各个移动节点的名称了
+            for i in indexes
+                self.joints[i].position=desired[i]#控制点对应的舵机的位置
+                self.joints[i].setCurrentPosition()#发送舵机的控制命令  这个函数。。。。。。。。。。setCurrentPosition(self, position): 就是将数据发送？？？？？？？
+		#  还应该有一个数据处理的函数，将moveit的数据转换成舵机的度数
+
+            while rospy.Time.now() + rospy.Duration(0.01) < start:#如果当前时间小于舵机这个点预期完成时间，则等待
+                rospy.sleep(0.01)                        
+
+        rospy.loginfo(self.name + ": Done.")
+===========================================================================================
+int control=0;/////0:人工控制;1:自动控制  可以作为以后机械臂控制的一个入口。
+========================================================================
+////////////////////////////PID控制，参考 是小车的pid
+void PID_left() {
+  Serial.println("********************************begin PID left");
+
+  left_Input = count_left * 10;
+  left_PID.Compute();
+
+  val_left = val_left + left_Output;
+  if (val_left > 255)
+    val_left = 255;
+  if (val_left < 0)
+    val_left = 0;
+  if (run_direction == 'f') //根据刚刚调节后的小车电机PWM功率值，及时修正小车前进或者后退状态
+    advance();
+  if (run_direction == 'b')
+    back();
+  Serial.println("********************************end PID Left");
+}
+void PID_right() {
+  Serial.println("********************************begin PID Right");
+
+  right_Input = count_right * 10;
+  right_PID.Compute();
+  val_right = val_right + right_Output;
+  if (val_right > 255)
+    val_right = 255;
+  if (val_right < 0)
+    val_right = 0;
+  if (run_direction == 'f') //根据刚刚调节后的小车电机PWM功率值，及时修正小车前进或者后退状态
+    advance();
+  if (run_direction == 'b')
+    back();
+  Serial.println("********************************end PID Right");
+}
+===========================================================================================

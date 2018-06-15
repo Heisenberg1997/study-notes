@@ -1,0 +1,20 @@
+mkdir -p /tmp/ws/src  
+cd /tmp/ws/src  
+git clone https://github.com/ros-industrial/universal_robot.git  
+cd /tmp/ws  
+rosdep update  
+rosdep install --from-paths src --ignore-src  
+catkin_make  
+source devel/setup.bash 
+
+
+
+
+CO2 1500ppm
+PM2.5 30 ug/m3
+温度 25°C	
+湿度 70%RH
+甲醛 0.050 mg/m3
+Tvoc 0.510 mg/m3
+
+环境数据

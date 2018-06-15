@@ -1,0 +1,27 @@
+使用cmake根据cmakelist来生成makefile  使用make来生成可执行文件
+
+cmake_minimum_required(VERSION 2.6) 版本声明是在主目录下的
+PROJECT(demoA)
+SET(LIBRARIES /usr/lib/x86_64-linux-gnu/libm.so) 也就是将后面的库保存在libraries里 后面可以直接使用这个变量
+SET(ALL_CODE_LIST demo.cpp sqrt.cpp sqrt.h)
+MESSAGE(${ALL_CODE_LIST})
+ADD_EXECUTABLE(sqrtDemoA ${ALL_CODE_LIST})
+MESSAGE(STATUS "THIS IS BINARY dir" ${demoA_BINARY_DIR})用于输出
+TARGET_LINK_LIBRARIES (sqrtDemoA ${LIBRARIES})
+SET(EXECUTABLE_OUTPUT_PATH "${CMAKE_LINARY_DIR}/bin")这里的cmake_linary_dir和projectname_bBINARY_DIR的一样 可替换
+大小写都可以识别
+常用机械臂moveit的头文件
+moveit/move_group_interface/move_group.h
+moveit/planning_scence_interface/planning_scene_interface.h
+moveit_msgs/DisplayRobotState.h
+DisplayTrajectory
+attachedcollisionobject
+collisionobject
+一般初始+nodehandle节点+自旋+开始，标准开始部分。
+需要写个sleep
+需要一个运动规划+自身碰撞检测。
+碰撞检测头文件：
+moveit/robot_model_loader/robot_model_loarder.h
+moveit/planning_scene/planing_scene.h
+moveit/kinetic_constraints/utils.h
+eigen_conversions/eigen_msg.h

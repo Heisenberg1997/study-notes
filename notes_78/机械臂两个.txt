@@ -1,0 +1,353 @@
+#include <ros/ros.h>  
+#include <actionlib/server/simple_action_server.h>  
+#include <control_msgs/FollowJointTrajectoryAction.h>  
+#include <trajectory_msgs/JointTrajectory.h>  
+#include <std_msgs/Float64.h>  
+#include <iostream>  
+#include <vector>  
+#include <string>  
+#include <sensor_msgs/JointState.h>  
+#include <map>  
+#include "zzz_arm_control_driver/joint_msg.h"  
+  
+using namespace std ;  
+typedef actionlib::SimpleActionServer<control_msgs::FollowJointTrajectoryAction> Server;  
+  
+class RobotTrajectoryFollower  
+{  
+protected:  
+  
+  ros::NodeHandle nh_;  
+  // NodeHandle instance must be created before this line. Otherwise strange error may occur.  
+  //actionlib::SimpleActionServer<control_msgs::FollowJointTrajectoryAction> as_;  
+  std::string action_name_;  
+  
+  ros::Publisher joint_pub ;  
+  ros::Publisher joint_motor_pub ;  
+  sensor_msgs::JointState joint_state;  
+  zzz_arm_control_driver::joint_msg joint_motor_msg;  
+  
+  control_msgs::FollowJointTrajectoryResult result_;  
+  control_msgs::FollowJointTrajectoryActionGoal agoal_;  
+  control_msgs::FollowJointTrajectoryActionFeedback afeedback_;  
+  control_msgs::FollowJointTrajectoryFeedback feedback_;  
+public:  
+  map< string, int > MotoName_Id;  
+  RobotTrajectoryFollower(std::string name) :  
+    nh_("~"),  
+    as_(nh_, name,boost::bind(&RobotTrajectoryFollower::goalCB, this, _1),  false),  
+    action_name_(name)  
+  {  
+    /*<!-- 
+    shoulder_wan_joint:1 
+    upper_arm_joint:2 
+    middle_arm_joint:3 
+    fore_arm_joint:4 
+    tool_joint:5 -->*/  
+    nh_.param("shoulder_wan_joint", MotoName_Id["shoulder_wan_joint"], 0);  
+    nh_.param("upper_arm_joint", MotoName_Id["upper_arm_joint"], 0);  
+    nh_.param("middle_arm_joint", MotoName_Id["middle_arm_joint"], 0);  
+    nh_.param("fore_arm_joint", MotoName_Id["fore_arm_joint"], 0);  
+    nh_.param("tool_joint", MotoName_Id["tool_joint"], 10);  
+  
+    joint_pub = nh_.advertise<sensor_msgs::JointState>("/move_group/fake_controller_joint_states", 1);  
+  
+    joint_motor_pub = nh_.advertise<zzz_arm_control_driver::joint_msg>("/arm_motors", 1000);  
+  
+    //Register callback functions:  
+    //as_.registerGoalCallback(boost::bind(&RobotTrajectoryFollower::goalCB, this,_1));  
+    as_.registerPreemptCallback(boost::bind(&RobotTrajectoryFollower::preemptCB, this));  
+  
+    as_.start();  
+  }  
+  
+  ~RobotTrajectoryFollower(void)//Destructor  
+  {  
+  }  
+//  
+  void setJointStateName(std::vector<std::string> joint_names){  
+    joint_state.name.resize(joint_names.size());  
+    joint_state.name.assign(joint_names.begin(), joint_names.end());  
+    //joint_state.name[0] ="arm_1_to_arm_base";  
+    //std::vector<std::string>::iterator it;  
+    //for ( it = joint_state.name.begin(); it != joint_state.name.end(); it++){  
+    //  cout <<(*it) <<endl;  
+    //}  
+    //cout <<endl ;  
+  }  
+  void setJointStatePosition(std::vector<double> joint_posi){  
+    joint_state.position.resize(joint_posi.size());  
+    joint_state.position.assign(joint_posi.begin(), joint_posi.end());  
+    //joint_state.position[0] = base_arm;  
+    //std::vector<double>::iterator it;  
+    //for ( it = joint_state.position.begin(); it != joint_state.position.end(); it++){  
+    //  cout <<(*it) <<endl;  
+    //}  
+    //cout <<endl ;  
+  }  
+  void publishJointState(){  
+    joint_state.header.stamp = ros::Time::now();  
+    joint_pub.publish(joint_state);  
+  }  
+  void publishMotorState(int ids[],std::vector<double> joint_posi){  
+  
+  
+    std::vector<double>::iterator it;  
+    int i=0;  
+    for ( it = joint_posi.begin(); it != joint_posi.end(); it++,i++){  
+      joint_motor_msg.id=ids[i];  
+      joint_motor_msg.r=(*it) ;  
+      joint_motor_pub.publish(joint_motor_msg);  
+      cout <<joint_motor_msg <<endl;  
+  
+    }  
+  
+  
+  }  
+  void goalCB(const control_msgs::FollowJointTrajectoryGoalConstPtr msg)  
+  {  
+    //cout<<((*msg))<<endl;  
+    std::vector<std::string> joint_names=(*msg).trajectory.joint_names;  
+    //  
+    setJointStateName( joint_names);  
+  
+    std::vector<std::string>::iterator it;  
+    int ids [joint_names.size()];  
+    int i=0;  
+    for ( it = joint_names.begin(); it != joint_names.end(); it++,i++){  
+      ids[i]=MotoName_Id[(*it)];  
+      cout <<MotoName_Id[(*it)] <<endl;  
+    }  
+  
+    //goal=(*msg);goal.trajectory.points;//c++ how to use this style??  
+  
+    std::vector<trajectory_msgs::JointTrajectoryPoint> points = (*msg).trajectory.points;  
+    std::vector<trajectory_msgs::JointTrajectoryPoint>::iterator pointsit;  
+    ros::Rate rate(10);//10hz  
+    size_t t=points.size();  
+    ROS_INFO("%s: goalCB ", action_name_.c_str());  
+    for ( pointsit = points.begin(); pointsit != points.end(); pointsit++){  
+      //cout<<(*pointsit)<<endl;  
+      //cout <<endl ;  
+      //here send datamsg to hardware node,command motors run.  
+      //  
+      publishMotorState(ids,(*pointsit).positions);  
+      //wait  
+      rate.sleep();  
+      //then update joinstates an publish  
+      setJointStatePosition((*pointsit).positions);  
+      publishJointState();  
+      //feedback_.  
+      //as_.publishFeedback(feedback_);  
+      ROS_INFO("left position :%d", (int)t);  
+      t--;  
+    }  
+  
+    // accept the new goal  
+    //as_.acceptNewGoal();  
+    if(as_.isActive())as_.setSucceeded();  
+  }  
+  
+  void preemptCB()  
+  {  
+    ROS_INFO("%s: Preempted", action_name_.c_str());  
+    // set the action state to preempted  
+  
+    if(as_.isActive()){  
+        as_.setPreempted();  
+    }  
+  }  
+  Server as_;  
+};  
+  
+int main(int argc, char** argv)  
+{  
+  
+  ros::init(argc, argv, "jointcontroller");  
+  RobotTrajectoryFollower RobotTrajectoryFollower("/zzz_arm_controller/follow_joint_trajectory");  
+  
+;  
+  ROS_INFO("-------------zzz joint controller is running .");  
+  ros::spin();  
+  
+  return 0;  
+}  
+
+
+
+
+
+
+
+******************************************************************************
+#include <ros/ros.h>  
+#include <serial/serial.h>  
+//ROS已经内置了的串口包  
+#include <std_msgs/String.h>  
+#include <std_msgs/Empty.h>  
+#include "zzz_arm_control_driver/joint_msg.h"  
+#include <boost/asio.hpp>                  //包含boost库函数  
+  
+  
+using namespace boost::asio;           //定义一个命名空间，用于后面的读写操作  
+using namespace std;  
+serial::Serial ser; //声明串口对象  
+//io_service Object  
+io_service m_ios;  
+  
+//Serial port Object  
+serial_port *pSerialPort;  
+  
+//For save com name  
+//any_type m_port;  
+  
+//Serial_port function exception  
+boost::system::error_code ec;  
+  
+  
+std::string serial_port_name;  
+int serial_baudrate = 115200;  
+unsigned char AA=1;  
+unsigned char aa;  
+//回调函数  
+void write_callback(const zzz_arm_control_driver::joint_msg::ConstPtr& msg)  
+{  
+    ROS_INFO_STREAM("Writing to serial port" <<msg->id<<msg->r);  
+    unsigned char mid=(char) msg->id;  
+    double r=msg->r;  
+    if(mid==1){  
+      r+=3.1415926536/4.0;//motor1 limit:-45~45  
+    }  
+    r=r<0.0?0.0:r;  
+    r=r>3.1415926/2.0?3.1415926/2.0:r;  
+    double per=r/(3.1415926/2.0);  
+  
+    per=(mid==1||mid==5)?per:(1-per);  
+    unsigned short  mr=(unsigned short )((per)*1024.0);  
+  
+    ROS_INFO("id:%d per:%d",mid,mr);  
+    unsigned char* mrp=  (unsigned char*)&mr;  
+  
+    unsigned char b1,b2,b3;  
+    //11aa aaAA  
+    b1=0xc0|(mid<<2);  
+    b1|=0x03&(AA>>2);  
+    //10AA xxxx  
+    b2=0x80|(AA<<4);  
+    b2|=(0x0c&((*(mrp+1))<<2))|(0x03&((*(mrp))>>6));  
+    //01xx xxxx  
+  
+    b3=0x40|(0x3f&(*(mrp)));  
+    char cdata[3];  
+    cdata[0]=b1;  
+    cdata[1]=b2;  
+    cdata[2]=b3;  
+    string data="";  
+    data+=b1;  
+    data+=b2;  
+    data+=b3;  
+  
+    //ser.write(data);//发送串口数据  
+    try  
+    {  
+      size_t len = write( *pSerialPort, buffer( cdata,3 ), ec );  
+    }catch (boost::system::system_error e){  
+        ROS_ERROR_STREAM("serail write err ");  
+  
+    }  
+}  
+  
+int main (int argc, char** argv)  
+{  
+  
+    //初始化节点  
+    ros::init(argc, argv, "jointserial");  
+    //声明节点句柄  
+    ros::NodeHandle nh;  
+  
+    //订阅主题，并配置回调函数  
+    ros::Subscriber write_sub = nh.subscribe("/arm_motors", 1000, write_callback);  
+    //发布主题  
+    //ros::Publisher read_pub = nh.advertise<std_msgs::String>("read", 1000);  
+    ros::NodeHandle nh_private("~");  
+    nh_private.param<std::string>("serial_port", serial_port_name, "/dev/ttyUSB0");  
+    nh_private.param<int>("serial_baudrate", serial_baudrate, 115200);  
+  
+    /*try 
+    { 
+    //设置串口属性，并打开串口 
+ 
+      ROS_INFO("%s",serial_port_name.c_str()); 
+      ser.setPort(serial_port_name); 
+      ser.setBaudrate(serial_baudrate); 
+      serial::Timeout to = serial::Timeout::simpleTimeout(10000); 
+      ser.setTimeout(to); 
+      ser.open(); 
+ 
+    } 
+    catch (serial::IOException& e) 
+    { 
+        ROS_ERROR_STREAM("Unable to open port "); 
+        return -1; 
+    } 
+    //检测串口是否已经打开，并给出提示信息 
+    if(ser.isOpen()) 
+    { 
+        ROS_INFO_STREAM("Serial Port initialized"); 
+    } 
+    else 
+    { 
+        return -1; 
+    }//*/  
+    pSerialPort = new serial_port( m_ios );  
+    if ( pSerialPort ){  
+        //init_port( port_name, 8 );  
+        //Open Serial port object  
+        pSerialPort->open( serial_port_name, ec );  
+        //Set port argument  
+        pSerialPort->set_option( serial_port::baud_rate( serial_baudrate ), ec );  
+        pSerialPort->set_option( serial_port::flow_control( serial_port::flow_control::none ), ec );  
+        pSerialPort->set_option( serial_port::parity( serial_port::parity::none ), ec );  
+        pSerialPort->set_option( serial_port::stop_bits( serial_port::stop_bits::one ), ec);  
+        pSerialPort->set_option( serial_port::character_size( 8 ), ec);  
+        m_ios.run();  
+    }  
+  
+    short int a = 0x1234;  
+    char *p = (char *)&a;  
+  
+    ROS_INFO("p=%#hhx\n", *p);  
+  
+    if (*p == 0x34) {  
+        ROS_INFO("little endian\n");  
+    } else if (*p == 0x12) {  
+        ROS_INFO("big endia\n");  
+    } else {  
+        ROS_INFO("unknown endia\n");  
+    }  
+  
+    ROS_INFO("-------------zzz joint serail is running .");  
+    ros::spin();  
+  
+    return 0;  
+  
+/* 
+    //指定循环的频率 
+    ros::Rate loop_rate(50); 
+    while(ros::ok()) 
+    { 
+ 
+        if(ser.available()){ 
+            ROS_INFO_STREAM("Reading from serial port\n"); 
+            std_msgs::String result; 
+            result.data = ser.read(ser.available()); 
+            ROS_INFO_STREAM("Read: " << result.data); 
+            read_pub.publish(result); 
+        } 
+ 
+        //处理ROS的信息，比如订阅消息,并调用回调函数 
+        ros::spinOnce(); 
+        loop_rate.sleep(); 
+ 
+    }*/  
+}  

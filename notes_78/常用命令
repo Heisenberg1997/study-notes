@@ -1,0 +1,4 @@
+ls /dev/input/  输出所有的输入设备
+sudo jstest /dev/input/js0 输出设备的信息到屏幕上
+sudo chmod 777 /dev/ttyUSB0  给出权限
+

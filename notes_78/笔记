@@ -1,0 +1,82 @@
+﻿sensor_msgs/Joy.msg  可以用rosmsg show+名字来查看消息的类型
+header 消息是一个集合的消息  一般称为复合域  常见的如linear和angler
+# Standard metadata for higher-level stamped data types.
+# This is generally used to communicate timestamped data 
+# in a particular coordinate frame.
+# 
+# sequence ID: consecutively increasing ID 
+uint32 seq
+#Two-integer timestamp that is expressed as:
+# * stamp.sec: seconds (stamp_secs) since epoch (in Python the variable is called 'secs')
+# * stamp.nsec: nanoseconds since stamp_secs (in Python the variable is called 'nsecs')
+# time-handling sugar is provided by the client library
+time stamp
+#Frame this data is associated with
+# 0: no frame
+# 1: global frame
+string frame_id
+
+moveit的规划再将规划结果完成之后，将数据传入driver， driver将数据在传给舵机的控制  ，一般是通过joint_state的消息进行传递
+ 如何让末端操作器沿直线运动？（运动方程式）l 如何让末端操作器给物体施加特定的力？（雅克比矩阵）
+体系结构的中心是move_group单元。其主要思想是，首先需要定义由关节和其他元件所构成的群组(group)，然后使用运动规划算法执行移动操作。这类算法考虑与物体交互的场景以及该群组关节的特性。
+上位机是指可以直接发出操控命令的计算机  比如PC 工控机  
+下位机是直接控制的  一般为单片机 
+上位机发出的命令首先给下位机，下位机再根据此命令解释成相应时序信号直接控制相应设备。下位机不时读取设备状态数据（一般为模拟量），转换成数字信号反馈给上位机。
+机械臂控制器文件也就是follow_controller的文件  用于驱动舵机的角度。
+===========================================================================================
+JointTrajectory的消息类型
+a. header
+这是Ros的标准消息头这里就不多介绍了
+b. joint_names
+这是所有关节名称的数组
+c.JointTrajectoryPoint
+这部分是驱动的关键，这个数组记录了机械臂从一种姿势到另外一种姿势所经过的路径点，moveit所产生的姿势路径是通过这些point点描述出来的，也就是我们驱动中要控制每个关节的舵机都按照这些point点进行运动，每个point又是由一个结构体构成：
+positions这是一个float64的数组，记录每个point的时候舵机应该到达的角度，这里是弧度为单位的，比如说是6自由度的那每个Point的这个positions字段中应该包含六个数值[1.57,0,2,0.2,3,0.12],也就是我们舵机控制范围是180度，那这里面的取值范围就是0~π
+velocities这个数组记录了每个关节运动的速度
+accelerations这个数组记录每个关节运动的加速度
+effort这个参数不知道中文应该如何翻译，可以不用
+d.**time_from**_start这个参数是指定从头部的timestamp开始算起多长时间要达到这个点的位置
+===============================================================================================
+
+
+BIOS里面存放的主要程序：自诊断程序（通过读取CMOS RAM中的内容识别硬件配置，并对其进行自检和初始化）、CMOS设置程序（引导过程中，通过特殊热键启动，进行设置后，存入CMOS RAM中）、系统自动装载程序（在系统自检成功后，将磁盘相对0道0扇区上的引导程序装入内存使其运行）和主要I/O驱动程序和中断服务（BIOS和硬件直接打交道，需要加载I/O驱动程序）。BIOS程序首先检查，计算机硬件能否满足运行的基本条件，这叫做”硬件自检”（Power-On Self-Test），缩写为POST。如果硬件出现问题，主板会发出不同含义的蜂鸣，启动中止。如果没有问题，屏幕就会显示出CPU、内存、硬盘等信息。
+机器人的ROS驱动并没有什么标准的格式或者规定。对于MoveIt而言，只要求你有个ROS node，它有两个功能：
+1.发布关节角度/joint_states
+如果连接实际机器人，MoveIt需要从机器人当前状态开始规划，因此这个ROS驱动需要能够实时获取机器人的各关节信息（如角度），并用过/joint_states消息发布；关节信息获取方式，初始化获取还是？？？？
+2.接收规划结果，并下发给机器人
+由于MoveIt规划的结果会以一个""action的形式""发布，所以我们的ROS驱动就应该提供一个action server，这个功能就是接收规划结果，下发给机器人，并反馈执行情况。action的类型是control_msgs/FollowJointTrajectory。
+具体action的写法可以参照ROS官网（坑）。简单而言，一个action有五个部分：
+action_name/goal：这个就是规划的路径，我们需要接收这个路径，并将所有路径点解析成机器人控制器可以识别的形式，之后下发给机器人，必须要有；
+action_name/cancel：这个指令可以随时中断正在执行的动作，但并不是必须的功能；
+action_name/feedback：这个是实时反馈执行状态，最简单的就是将机器人当前关节角度等信息反馈回去，非必须；
+action_name/status：这个用于显示机器人状态，如正在执行动作、等待、执行结束等待，非必须；
+action_name/result：这个就是在动作执行完之后给MoveIt反馈一个执行结果，这个是必须要有的，当然，为了简单，可以已接收到goal就反馈执行成功。
+这部分在MoveIt部分是看不到文档的，所以也是阻碍初学者使用MoveIt控制自己机器人的最大问题之一。但是了解了它的机理之后，就比较简单了。
+如果你是第一次使用MoveIt，极力推荐你先试试UR、Baxter等已经写好这部分驱动的机器人。
+moveit 控制真实机器手臂时需要自己编写 控制器，控制器要有一个action server来接收 moveit的路径消息，然后控制器把消息下发到硬件上。
+moveit 需要控制器获取并发布机机器手臂的状态。
+此处创建两个节点，来实现这些功能。
+第一个节点jointcontroller
+1、负责 action server 功能，
+2、路径消息转换成电机Id +角度r的一个新消息(joint_msg)，并发布/arm_motors的话题.
+3、由于是舵机，并不能获取其位姿，获取部分省略。
+4、发布舵机的当前位姿，即 从接收的路径消息来转换成joint_state消息，并发布/move_group/fake_controller_joint_states的话题。
+strings 
+第二个节点jointserial
+接收话题/arm_motors，解析joint_msg 通过自定义协议串口下发。
+
+ros_control 是一个类库!！ 并不是直接的工具库，需要自己写程序继承特定基类来做到接口的统一。
+
+舵机不是直接定义的而是通过一个launch的文件来加载的 也就将参数放入了map  可以方便的更改参数。XMLRPC数据类型作为参数值 包括：32-bit integers  booleans strings doubles iso8601 dates lists  base64-encoded binary data
+pos为当前机器人的位置，vel为机器人目前速度，eff为初始状态时机器人位置，cmd为接收cmd_vel消息用于控制机器人运动
+
+
+线程就是一个实体  可以多个线程运行在一个进程上，进程就是管着多个线程  进程是cpu资源分配的最小单位，线程是cpu调度的最小单位。
+
+在ROS中这些controller通常被实现成插件，并通过controller manager来加载调用。
+
+joy包是支持所有的Linux的操作手柄的一个包。这个包有一个用来作为操作手柄到ROS的接口的节点：joy_node.里面包含有操作手柄的按键和轴的信息。
+这个驱动会论询可以读的端口，这个端口里会发布操作手柄的状态信息。如果这个端口关闭或者读取失败，它会重新打开该端口。操作手柄的轴的信息范围在[-1,1],按钮的为0是关闭，1是开。
+sudo chmod a+rw /dev/input/jsX  给一个设备添加权限
+
+
