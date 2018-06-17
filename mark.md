@@ -10,5 +10,3 @@ git status 可以显示当前仓库里面的文件的修改的状态
 合并分支 用于写完程序 git merge<name>
 删除分支 git branch -d <name>
 
-
-如果这个在github上面显示成功就代表着我的程序可以运行了
