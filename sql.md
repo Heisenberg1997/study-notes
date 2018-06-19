@@ -151,3 +151,109 @@ mysqli_close($conn);
 - 删除数据库
 
   - drop databse +数据库名字
+
+JDBC库是一个规范的可移植的底层数据库程序
+
+JDBC API提供应用程序对JDBC的管理连接
+
+JDBC Driver API 支持JDBC管理到驱动的连接
+
+
+
+![img](http://www.yiibai.com/uploads/images/201706/0206/392080659_56700.jpg)
+
+
+
+构建JDBC应用程序六大步骤
+
+- **导入包**：import java.sql.*
+
+- **注册JDBC驱动程序**：需要初始化驱动程序，以便可以打开与数据库的通信通道。
+
+- **打开一个连接** ：需要使用类型为DriverManager.getConnection() 方法创建一个Connection对象，表示与数据库的物理连接
+
+- **执行查询** ：需要使用类型为Statement的对象来构建和提交SQL语句到数据库
+
+- **从结果中提取数据** ：需要使用相应的`ResultSet.getXXX()`方法从结果集中检索数据。
+
+- **清理环境**：需要明确地关闭所有数据库资源，而不依赖于JVM的垃圾收集。
+
+  实例代码：
+
+  ```java
+  
+  //STEP 1. Import required packages
+  import java.sql.*;
+  
+  public class FirstExample {
+     // JDBC driver name and database URL
+     static final String JDBC_DRIVER = "com.mysql.jdbc.Driver";  
+     static final String DB_URL = "jdbc:mysql://localhost/emp";
+  
+     //  Database credentials
+     static final String USER = "root";
+     static final String PASS = "123456";
+  
+     public static void main(String[] args) {
+     Connection conn = null;
+     Statement stmt = null;
+     try{
+        //STEP 2: Register JDBC driver
+        Class.forName("com.mysql.jdbc.Driver");
+  
+        //STEP 3: Open a connection
+        System.out.println("Connecting to database...");
+        conn = DriverManager.getConnection(DB_URL,USER,PASS);
+  
+        //STEP 4: Execute a query
+        System.out.println("Creating statement...");
+        stmt = conn.createStatement();
+        String sql;
+        sql = "SELECT id, first, last, age FROM Employees";
+        ResultSet rs = stmt.executeQuery(sql);
+  
+        //STEP 5: Extract data from result set
+        while(rs.next()){
+           //Retrieve by column name
+           int id  = rs.getInt("id");
+           int age = rs.getInt("age");
+           String first = rs.getString("first");
+           String last = rs.getString("last");
+  
+           //Display values
+           System.out.print("ID: " + id);
+           System.out.print(", Age: " + age);
+           System.out.print(", First: " + first);
+           System.out.println(", Last: " + last);
+        }
+        //STEP 6: Clean-up environment
+        rs.close();
+        stmt.close();
+        conn.close();
+     }catch(SQLException se){
+        //Handle errors for JDBC
+        se.printStackTrace();
+     }catch(Exception e){
+        //Handle errors for Class.forName
+        e.printStackTrace();
+     }finally{
+        //finally block used to close resources
+        try{
+           if(stmt!=null)
+              stmt.close();
+        }catch(SQLException se2){
+        }// nothing we can do
+        try{
+           if(conn!=null)
+              conn.close();
+        }catch(SQLException se){
+           se.printStackTrace();
+        }//end finally try
+     }//end try
+     System.out.println("There are so thing wrong!");
+  }//end main
+  }//end FirstExample
+  
+  ```
+
+  
