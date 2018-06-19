@@ -256,4 +256,8 @@ JDBC Driver API 支持JDBC管理到驱动的连接
   
   ```
 
+  注册方式有两个，第一个是forname（）进行驱动注册
+
+  第二个是使用静态方法进行注册程序  **DriverManager.registerDriver()**
+
   
