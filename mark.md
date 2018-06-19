@@ -16,6 +16,12 @@ git status 可以显示当前仓库里面的文件的修改的状态
 合并分支 用于写完程序 git merge<name>
 删除分支 git branch -d <name>
 
+
+
+
+
+使用一个新的仓库的时候，需要先对本地的文件夹进行仓库的初始化，之后创建云上的仓库，之后再在本地的仓库上 git remote add 仓库名 git@github.com:Heisenberg1997/xx.git进行本地和远程仓库的关联，之后再在本地仓库进行git pull 一下 在上传即可
+
 ##### HTTPS的方式需要输入一些账号和密码，但是明文的输入并不ok 因此采用ssh进行数据的传输
 
 
