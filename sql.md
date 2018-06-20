@@ -261,3 +261,73 @@ JDBC Driver API 支持JDBC管理到驱动的连接
   第二个是使用静态方法进行注册程序  **DriverManager.registerDriver()**
 
   
+
+
+
+注册完之后要建立连接，可以使用DriverManager.getConnection()的方法建立连接，
+
+三个重载的方法 
+
+- getConnection（String url）
+
+- getConnection（String url，Properties prop）
+
+- getConnection （String url，String user， String password）
+
+  三种方式的url的格式不相同
+
+MySQL 驱动名称 com.mysql.jdbc .Driver url格式：jdbc:mysql://hostname/databaseName
+
+与数据库建立连接之后就可以访问数据库中的内statement等 每次使用这个Statement时需要先对Connection进行函数的调用创建一个Statement  然后用Statement执行SQL语句，一共可以执行三个语句
+
+- boolean execute （String SQL） 可以使用执行创建数据库，创建表
+- int executeUpdate （String SQL）返回收SQL语句影响的行数
+- ResultSet executeQuery （String SQL）返回一个RS对象。
+
+同样当使用完之后应该使用close（）函数进行关闭
+
+
+
+三个statement一样，或者说类似 都需要对connection进行create 之后获得state 对其中保存的数据进行操作，读取的函数都是 **getxxx** 类型的。结果集完全取决于statement
+
+四种结果集：
+
+- 最基本的RS
+
+  ​	只有查询结果的存储功能，并且不能来回的滚动读取。
+
+  ​	创建方法：
+
+  ​		Statement st = conn.CreateStatement
+
+  ​		ResultSet rs = Statemnt.executeQuery(sqlStr);//存疑，st.Statement.executeQuary?
+
+  ​	如果获得了这样的数据集 只能用next()方法进行读取，**不能回滚！！**
+
+- 可回滚的RS
+
+   	支持next()、previous()、first()回到第一行、absolute（int）跳转到第几行、relative（int n）相对当前第几行
+
+  ​	创建方式：
+
+  ​		Statement st = conn.createStatement(int resultSetType,int resultSetConcurrency)
+
+  ​		ResultSet rs = st.executeQuery(sqlStr)
+
+  ​	statement 创建中的两个参数一个是设置对象是否可以滚动
+
+  ​		- ResultSet.TYPE_FORWARD_ONLY 只能向前滚动 
+
+  ​		- ResultSet.TYPE_SCROLL_INSENSITIVE 和 Result.TYPE_SCROLL_SENSITIVE 这两个方都				
+
+  ​		  能够实现 任意的前后滚动，使用各种移动的 ResultSet  指针的方法。
+
+  ​    		  二者的区别在于者对于修改不敏感，而后者对于修改敏感。 
+
+- 可更新的RS
+
+  Statement st = createstatement(Result.TYPE_SCROLL_INSENSITIVE,Result.CONCUR_UPDATABLE) 
+
+- 可保持的RS
+
+  ​	每一次的查询的时候只能保持一个RS为打开状态，而使用可保持状态的RS则可以在打开一个RS的时候同时打开另一个RS进行数据的查询。
