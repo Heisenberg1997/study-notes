@@ -154,6 +154,8 @@ mysqli_close($conn);
 
 JDBC库是一个规范的可移植的底层数据库程序
 
+JDBC Java数据库连接，用于和Java和数据库之前进行连接
+
 JDBC API提供应用程序对JDBC的管理连接
 
 JDBC Driver API 支持JDBC管理到驱动的连接
@@ -331,3 +333,35 @@ MySQL 驱动名称 com.mysql.jdbc .Driver url格式：jdbc:mysql://hostname/data
 - 可保持的RS
 
   ​	每一次的查询的时候只能保持一个RS为打开状态，而使用可保持状态的RS则可以在打开一个RS的时候同时打开另一个RS进行数据的查询。
+
+***
+
+**class.forname** 返回的是一个类，也就是JVM会查找并加载指定的类，也就是会执行该类的静态的代码段，之后可以调用类内部的一些函数，比如实例化函数newInstance()进行类的实例化
+
+**注意newinstance是只能调用无参数的构造函数。**
+
+用法 A a = (A) Class.forName("pacage.A").newInstance();这个用法等于A a = new ();两者的区别：
+
+一般第一个是用于动态加载类，也就是可以根据用户的输入来确定想要实例化的类，也即是直接将“package.A”变成一个String的变量，进一步非的改进，将classname改成从配置文件中读取，就可以直接封装了，可拓展性和重用性很高。
+
+在使用方法进行创建类的时候需要提前将类进行加载，并且类已经连接上了。因此就是使用class.forname进行类的加载。
+
+**一般单使用forname是没用用的，必须要实例化才能使用**
+
+- 为什么有的数据库开发的时候直接使用的是classname 并没有使用newinstance？？
+
+  ​	因为在使用classname的时候会执行其中的静态的代码段，而JDBC要求每一个Driver都要向manager注册自己，因此在静态代码段中就注册了，就不用实例化了
+
+---
+
+JDBC一直处于自动提交模式，而可以将单个SQL组成一组来进行提交，
+
+关闭自动提交：
+
+conn.setAutoCommit (false);
+
+手动提交和回滚：
+
+conn.commit();
+
+conn.rollback();
