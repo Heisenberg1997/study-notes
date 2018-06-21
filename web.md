@@ -19,3 +19,41 @@ MVC设计模式
 **MVC是一个做WEB的模式！！！！**
 
 浏览器和服务器之间的传输协议是HTTP
+
+***
+
+#### socket编程
+
+***
+
+最典型的socket编程就是web的网络编程，浏览器获得用户输入的url 然后通过socket向服务器发送请求，服务器将浏览器的内容在通过socket返回到浏览器，浏览器再对其进行解析渲染等操作实现本地数据的显示。
+
+常用的数据传输方式有两个，第一个是SOCK_STREAM 和SOCK_DGRAM
+
+**SOCK_STREAM** 面向连接的传输，数据不会出现丢失，如果出现了丢失和数据的损坏，则会重新发送，但是效率很低，常见的http协议就是使用SOCK_STREAM传输数据。
+
+
+
+**SOCKET_DGRAM** 无连接的传输数据，一方只管传输数据，一方只管接受，不管数据的丢失和损坏，常见的是就是QQ视频和语音等保证通讯效率尽可能小的延迟，因为尽管流失了一部分数据，等多声音有噪点或者有杂音。
+
+
+
+***
+
+```
+int socket(int af, int type, int protocol);
+```
+
+**af**为地址族 就是IP地址 常用有AF_INET 和AF_INET6 表示ipv4与ipv6  127.0.0.1表示本机地址
+
+**type**为传输协议就是上面的两种
+
+**protocol**为传输协议，常用IPPROTO_TCP IPPTOTO_UDP 就是TCP协议和UDP协议
+
+确定了套接字的各种属性之后，服务器要用bind将套接字与IP和端口绑定，这样流经此接口的数据才能给套接字使用，而客户端使用connect函数与服务器进行连接
+
+bind（）函数原型
+
+​	int bind（int socket ，struct sockaddr *addr，socklen_t addrlen）;
+
+sock为socket文件描述符 
