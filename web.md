@@ -57,3 +57,5 @@ bind（）函数原型
 ​	int bind（int socket ，struct sockaddr *addr，socklen_t addrlen）;
 
 sock为socket文件描述符 
+
+sock进行创建之后需要自己对实际的端口进行指配  也就是用来将虚拟变量和实际的向关联起来.
