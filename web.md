@@ -59,3 +59,62 @@ bind（）函数原型
 sock为socket文件描述符 
 
 sock进行创建之后需要自己对实际的端口进行指配  也就是用来将虚拟变量和实际的向关联起来.
+
+
+
+***
+
+![Servlet 架构](https://www.runoob.com/wp-content/uploads/2014/07/servlet-arch.jpg)
+
+servelt的位置
+
+读取客户端发送的各种数据有隐形和显性,之后通过处理和访问数据库进行数据的交换的访问,之后将结果返回到客户端上去进行数据的显示.
+
+包:javax.servlet  javax.servlet.http
+
+创建接口的方法有三个:
+
+```java
+//Servlet的生命周期:从Servlet被创建到Servlet被销毁的过程
+//一次创建，到处服务
+//一个Servlet只会有一个对象，服务所有的请求
+/*
+ * 1.实例化（使用构造方法创建对象）
+ * 2.初始化  执行init方法 一般只执行一次
+ * 3.服务     执行service方法
+ * 4.销毁    执行destroy方法
+ */
+public class ServletDemo1 implements Servlet {
+
+    //public ServletDemo1(){}
+
+     //生命周期方法:当Servlet第一次被创建对象时执行该方法,该方法在整个生命周期中只执行一次
+    public void init(ServletConfig arg0) throws ServletException {
+                System.out.println("=======init=========");
+        }
+
+    //生命周期方法:对客户端响应的方法,该方法会被执行多次，每次请求该servlet都会执行该方法
+    public void service(ServletRequest arg0, ServletResponse arg1)
+            throws ServletException, IOException {
+        System.out.println("hehe");
+
+    }
+
+    //生命周期方法:当Servlet被销毁时执行该方法
+    public void destroy() {
+        System.out.println("******destroy**********");
+    }
+//当停止tomcat时也就销毁的servlet。
+    public ServletConfig getServletConfig() {
+
+        return null;
+    }
+
+    public String getServletInfo() {
+
+        return null;
+    }
+}
+```
+
+servlet是servlet的配置文件,可以用一个或者多个init-param标签对servlet配置进行初始化,web在进行创建servlet实例对象的时候会将这些参数进行封装到servletCnfig对象中并在调用的时候servlet的init的函数的时候传给servlet,从而通过servlet获得当前的初始化的内容.
