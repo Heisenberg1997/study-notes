@@ -2,7 +2,7 @@
 
 ***
 
-一般的步骤，首先前端发送一个请求给服务器，一般用get（url）来访问网址，之后服务器进行回应，病给出访问后的信息。之间通过协议进行通讯，也就是HTTP协议进行通讯，后端一般得到的请求就是一组数据，url+协议+hostname+端口
+一般的步骤，首先前端发送一个请求给服务器，一般用get（url）来访问网址，之后服务器进行回应，并给出访问后的信息。之间通过协议进行通讯，也就是HTTP协议进行通讯，后端一般得到的请求就是一组数据，url+协议+hostname+端口
 
 MVC设计模式
 
@@ -118,3 +118,5 @@ public class ServletDemo1 implements Servlet {
 ```
 
 servlet是servlet的配置文件,可以用一个或者多个init-param标签对servlet配置进行初始化,web在进行创建servlet实例对象的时候会将这些参数进行封装到servletCnfig对象中并在调用的时候servlet的init的函数的时候传给servlet,从而通过servlet获得当前的初始化的内容.
+
+日常将笔记坐上,就是为了green all the days
