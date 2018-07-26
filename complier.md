@@ -109,3 +109,30 @@ cmakelist内容:
   
 
   ***
+
+core 文件可以使用gdb进行调试 core文件是程序非法执行的时候产生的
+
+当程序遇到设置的断点时会运行结束,等待输入 就是输入gdb的交互命令
+
+gdb交互命令:
+
+***
+
+运行
+
+- run (r)  continue(c) next(n) step(s) quit(q) 
+
+设置断点
+
+- bread n 第n行 
+- break func 函数入口
+- delete n 删除第n个断点
+- delete breakpoints 删除所有断点
+
+
+
+当足够熟练的时候可以使用 **cgdb**
+
+***
+
+ldd 命令 用来将程序的依赖列出来
