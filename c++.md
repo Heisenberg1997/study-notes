@@ -43,3 +43,24 @@ explicit 关键字 可以阻止不经过允许的隐式转换的发生.
 **auto**  自动匹配类型
 
 **decltype** 自动结算类型
+
+将两个字符串进行拼接 string.h的头文件 函数是strcat 进行两个char的数组的连接
+
+```c
+#include <stdio.h>
+#include <string.h>
+int main ()
+{
+  char str[80];
+  strcpy (str,"these ");
+  strcat (str,"strings ");
+  strcat (str,"are ");
+  strcat (str,"concatenated.");
+  puts (str);
+  return 0;
+}
+```
+
+
+
+fork函数 在父进程中用来新建一个进程 一般os.fork()在父进程中就是子进程的id号	而在子进程中就是0 所以一般先判断是不是0 如果是 就是子进程 而如果不是0 就是父进程 ,getpid就是获得自己的id 而getppid是获得父进程的id
