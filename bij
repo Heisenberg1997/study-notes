@@ -8,3 +8,15 @@ Bus 002 Device 002: ID 05e3:0608 Genesys Logic, Inc. Hub
 Bus 002 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
 KERNEL=="ttyUSB*", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6001", MODE:="0777", SYMLINK+="ttyUSB0"
 KERNEL=="ttyUSB*", ATTRS{idVendor}=="05e3", ATTRS{idProduct}=="0723", MODE:="0777", SYMLINK+="ttyUSB1"
+
+
+INSERT INTO user 
+          (host, user, password, 
+           select_priv, insert_priv, update_priv) 
+           VALUES ('localhost', 'zyf', 
+           PASSWORD('zyf123'), 'Y', 'Y', 'Y');
+
+
+ FLUSH PRIVILEGES;
+
+SELECT host, user, password FROM user WHERE user = 'zyf';
